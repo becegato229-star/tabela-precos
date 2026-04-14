@@ -1,6 +1,6 @@
 """
 MUBEC — Gerador de Tabela de Preços
-Lê os arquivos Excel em /dados e gera index.html em /docs
+Lê precos_todos.xlsx em /dados e gera index.html em /docs
 """
 import pandas as pd
 import re
@@ -37,12 +37,28 @@ def fmt_price(v):
 
 def fmt_emb(v):
     try:
-        if v is None or (hasattr(v, '__class__') and str(type(v)) == "<class 'float'>" and v != v):
-            return None
+        if pd.isna(v): return None
         n = float(v)
         return str(int(n)) if n == int(n) else str(n)
     except:
         return None
+
+def fmt_ncm(v):
+    try:
+        if pd.isna(v): return "—"
+        n = int(float(str(v)))
+        s = f"{n:08d}"
+        return f"{s[:4]}.{s[4:6]}.{s[6:]}"
+    except:
+        return "—"
+
+def fmt_ipi(v):
+    try:
+        if pd.isna(v): return "—"
+        n = float(v)
+        return f"{n*100:.1f}%".replace(".", ",")
+    except:
+        return "—"
 
 def get_group(item):
     m = re.match(r"^((?:[A-Z]+\s+)+?)(?:\d+\s+)?(?:\d+/\d+|M\d+|\d+\s+X\b)", item)
@@ -102,9 +118,14 @@ LAYOUT = [
 ]
 
 INOX_ABRAC = {"ABRACADEIRA U INOX", "KIT ABRACADEIRA COMPLETO U INOX"}
+
 COLGROUP = ('<colgroup>'
-            '<col style="width:58px"><col>'
-            '<col style="width:90px"><col style="width:112px">'
+            '<col style="width:54px">'   # COD
+            '<col>'                       # DESCRIÇÃO
+            '<col style="width:82px">'   # EMB
+            '<col style="width:108px">'  # PREÇO
+            '<col style="width:88px">'   # NCM
+            '<col style="width:54px">'   # IPI
             '</colgroup>')
 
 def make_rows(group_name, rows, price_key, force_indef=False):
@@ -114,11 +135,12 @@ def make_rows(group_name, rows, price_key, force_indef=False):
         med  = clean_m(r.get("medida", ""))
         desc = rename(f"{group_name} {med}".strip().upper())
         ph   = fmt_price(r[price_key])
+        ncm  = fmt_ncm(r.get("ncm"))
+        ipi  = fmt_ipi(r.get("ipi"))
         if force_indef:
             emb_str, emb_cls = "A DEFINIR", " indefinido"
         else:
-            emb_raw = r.get("embalagem")
-            emb_str = fmt_emb(emb_raw)
+            emb_str = fmt_emb(r.get("embalagem"))
             if emb_str is None:
                 emb_str, emb_cls = "A DEFINIR", " indefinido"
             else:
@@ -129,6 +151,8 @@ def make_rows(group_name, rows, price_key, force_indef=False):
             f'<td class="td-desc">{desc}</td>'
             f'<td class="td-emb{emb_cls}">{emb_str}</td>'
             f'<td class="td-price">{ph}</td>'
+            f'<td class="td-ncm">{ncm}</td>'
+            f'<td class="td-ipi">{ipi}</td>'
             f'</tr>'
         )
     return html
@@ -149,8 +173,12 @@ def build_table(group_name, price_key):
     rows_html = make_rows(group_name, rows, price_key, force_indef)
     title = rename(group_name.upper())
     thead = (f'<thead><tr>'
-             f'<th class="th-cod">COD</th><th class="th-desc">DESCRIÇÃO</th>'
-             f'<th class="th-emb">Embalagem</th><th class="th-price">PREÇO {unit}</th>'
+             f'<th class="th-cod">COD</th>'
+             f'<th class="th-desc">DESCRIÇÃO</th>'
+             f'<th class="th-emb">Embalagem</th>'
+             f'<th class="th-price">PREÇO {unit}</th>'
+             f'<th class="th-ncm">NCM</th>'
+             f'<th class="th-ipi">IPI</th>'
              f'</tr></thead>')
     return (f'<div class="cat-block">'
             f'<div class="cat-title">{title}</div>'
@@ -220,19 +248,26 @@ HTML = f"""<!DOCTYPE html>
   table{{width:100%;border-collapse:collapse;table-layout:fixed;}}
   thead tr{{background:var(--th-bg);}}
   thead th{{padding:6px 8px;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--cinza);border-bottom:1px solid var(--borda);white-space:nowrap;overflow:hidden;}}
-  th.th-cod{{text-align:center;}}th.th-desc{{text-align:left;}}th.th-emb{{text-align:center;}}th.th-price{{text-align:right;}}
+  th.th-cod   {{ text-align:center; }}
+  th.th-desc  {{ text-align:left; }}
+  th.th-emb   {{ text-align:center; }}
+  th.th-price {{ text-align:right; }}
+  th.th-ncm   {{ text-align:center; }}
+  th.th-ipi   {{ text-align:center; }}
   tbody tr{{border-bottom:1px solid #e8e8e8;}}
   tbody tr:last-child{{border-bottom:none;}}
   tbody tr:nth-child(even){{background:#fafafa;}}
   tbody tr:hover{{background:#f0fdf7;}}
   td{{padding:5px 8px;vertical-align:middle;font-size:12px;}}
-  td.td-cod{{color:var(--cinza);font-weight:600;font-size:11px;text-align:center;white-space:nowrap;overflow:hidden;}}
-  td.td-desc{{font-weight:400;text-align:left;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
-  td.td-emb{{text-align:center;font-weight:600;font-size:11px;color:#333;white-space:nowrap;}}
+  td.td-cod  {{color:var(--cinza);font-weight:600;font-size:11px;text-align:center;white-space:nowrap;overflow:hidden;}}
+  td.td-desc {{font-weight:400;text-align:left;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
+  td.td-emb  {{text-align:center;font-weight:600;font-size:11px;color:#333;white-space:nowrap;}}
   td.td-emb.indefinido{{color:#bbb;font-style:italic;font-size:10px;font-weight:400;}}
   td.td-price{{font-weight:700;white-space:nowrap;color:var(--preto);padding-left:6px;padding-right:8px;}}
   td.td-price .curr{{float:left;color:var(--cinza);font-weight:600;font-size:11px;padding-right:4px;line-height:inherit;}}
   td.td-price .amt{{display:block;text-align:right;}}
+  td.td-ncm  {{text-align:center;font-size:11px;color:var(--cinza);white-space:nowrap;letter-spacing:.03em;}}
+  td.td-ipi  {{text-align:center;font-size:11px;color:var(--cinza);white-space:nowrap;font-weight:600;}}
   .footer{{margin-top:32px;padding-top:12px;border-top:2px solid var(--preto);display:flex;justify-content:space-between;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cinza);}}
   .verde-dot{{display:inline-block;width:8px;height:8px;background:var(--verde);border-radius:50%;margin-right:4px;vertical-align:middle;}}
 </style>
