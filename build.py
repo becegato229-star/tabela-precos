@@ -60,8 +60,16 @@ def fmt_ipi(v):
     except:
         return "—"
 
+KNOWN_PREFIXES = [
+    "KIT ABRACADEIRA D C/ PARAFUSO GE",
+    "ABRACADEIRA D C/ CUNHA GE",
+]
+
 def get_group(item):
-    m = re.match(r"^((?:[A-Z]+\s+)+?)(?:\d+\s+)?(?:\d+/\d+|M\d+|\d+\s+X\b)", item)
+    for prefix in KNOWN_PREFIXES:
+        if item.startswith(prefix):
+            return prefix
+    m = re.match(r"^((?:[A-Z]+\s+)+?)(?:\d+\s+)?(?:\d+/\d+|M\d+|\d+\s+X\b|\d+\s+\d+/\d+|\b\d+\b(?:\s+(?:NC|WW|X\b))?)", item)
     if m: return m.group(1).strip()
     return item.split(" X ")[0].strip()
 
@@ -90,13 +98,14 @@ LAYOUT = [
     ("ROW",  "SUPORTE RT GF",                            "SUPORTE RT INOX"),
     ("SEC",  "ABRAÇADEIRAS U"),
     ("ROW",  "ABRACADEIRA U NAT",                        "ABRACADEIRA U GE"),
-    ("ROW",  None,                                       "KIT ABRACADEIRA COMPLETO U GE"),
+    ("FULL", "KIT ABRACADEIRA COMPLETO U GE"),
     ("ROW",  "ABRACADEIRA U GF",                         "ABRACADEIRA U INOX"),
     ("ROW",  "KIT ABRACADEIRA COMPLETO U GF",            "KIT ABRACADEIRA COMPLETO U INOX"),
-    ("ROW",  'BRAÇADEIRA TIPO "D" C/ PARAFUSO ZINCADA',  'BRAÇADEIRA TIPO "D" C/ CUNHA ZINCADA'),
-    ("ROW",  "BRAÇADEIRA TIPO ECONÔMICA ZINCADA",        'BRAÇADEIRA TIPO "U" PERFIL C/ PARAUSO'),
-    ("ROW",  "BRAÇADEIRA TIPO UNIÃO HORIZINTAL ZINCADA", "BRAÇADEIRA TIPO UNIÃO VERTICAL ZINCADA"),
-    ("FULL", "BRAÇADEIRA TIPO ÔMEGA ZINCADA"),
+    ("SEC",  "ABRAÇADEIRAS PERFIL"),
+    ("ROW",  "KIT ABRACADEIRA D C/ PARAFUSO GE",         "ABRACADEIRA D C/ CUNHA GE"),
+    ("FULL", "ABRACADEIRA ECONOMICA GE"),
+    ("ROW",  "KIT ABRACADEIRA UNIAO HORIZONTAL GE",      "KIT ABRACADEIRA UNIAO VERTICAL GE"),
+    ("FULL", "ABRACADEIRA OMEGA GE"),
     ("SEC",  "OLHAIS"),
     ("ROW",  "OLHAL NAT",                                "OLHAL GE"),
     ("ROW",  "OLHAL GF",                                 "PARAFUSO OLHAL ZINCADO"),
@@ -112,20 +121,20 @@ LAYOUT = [
     ("SEC",  "PROLONGADORES"),
     ("FULL", "PROLONGADOR GE"),
     ("SEC",  "OUTROS"),
-    ("ROW",  'CHUMBADOR "CB" C/ PARAFUSO ZINCADO',       "JAQUETA E CONE ZINCADO"),
-    ("ROW",  "PARAFUSO LENTILHA FENDA ZINCADO",          "PARAFUSO LENTILHA TRAVA ZINCADO"),
-    ("FULL", "PARAFUSO SEXTAVADO ZINCADO"),
+    ("ROW",  "CHUMBADOR CB GE",                           "JAQUETA E CONE GE"),
+    ("ROW",  "PARAFUSO LENTILHA FENDA GE",               "PARAFUSO LENTILHA TRAVA GE"),
+    ("FULL", "PARAFUSO SEXTAVADO GE"),
 ]
 
 INOX_ABRAC = {"ABRACADEIRA U INOX", "KIT ABRACADEIRA COMPLETO U INOX"}
 
 COLGROUP = ('<colgroup>'
-            '<col style="width:54px">'   # COD
-            '<col>'                       # DESCRIÇÃO
-            '<col style="width:82px">'   # EMB
-            '<col style="width:108px">'  # PREÇO
-            '<col style="width:88px">'   # NCM
-            '<col style="width:54px">'   # IPI
+            '<col style="width:52px">'   # COD
+            '<col>'                       # DESCRIÇÃO (flex)
+            '<col style="width:72px">'   # EMB
+            '<col style="width:100px">'  # PREÇO
+            '<col style="width:82px">'   # NCM
+            '<col style="width:44px">'   # IPI
             '</colgroup>')
 
 def make_rows(group_name, rows, price_key, force_indef=False):
@@ -240,7 +249,7 @@ HTML = f"""<!DOCTYPE html>
   mark{{background:#d4f7e8;color:inherit;border-radius:2px;padding:0 1px;}}
   .sec-header{{background:var(--verde);color:var(--preto);font-weight:900;font-size:13px;letter-spacing:.18em;text-transform:uppercase;padding:10px 14px;margin-top:24px;margin-bottom:14px;}}
   .sec-header:first-child{{margin-top:0;}}
-  .two-row{{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:20px;align-items:start;}}
+  .two-row{{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin-bottom:20px;align-items:start;}}
   .half{{min-width:0;}}
   .full-row{{margin-bottom:20px;}}
   .cat-block{{border:1px solid var(--borda);}}
@@ -260,7 +269,7 @@ HTML = f"""<!DOCTYPE html>
   tbody tr:hover{{background:#f0fdf7;}}
   td{{padding:5px 8px;vertical-align:middle;font-size:12px;}}
   td.td-cod  {{color:var(--cinza);font-weight:600;font-size:11px;text-align:center;white-space:nowrap;overflow:hidden;}}
-  td.td-desc {{font-weight:400;text-align:left;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
+  td.td-desc {{font-weight:400;text-align:left;text-transform:uppercase;white-space:normal;overflow:hidden;word-break:break-word;}}
   td.td-emb  {{text-align:center;font-weight:600;font-size:11px;color:#333;white-space:nowrap;}}
   td.td-emb.indefinido{{color:#bbb;font-style:italic;font-size:10px;font-weight:400;}}
   td.td-price{{font-weight:700;white-space:nowrap;color:var(--preto);padding-left:6px;padding-right:8px;}}
