@@ -118,25 +118,14 @@ LAYOUT = [
     ("SEC",  "PORCAS"),
     ("ROW",  "PORCA SEXTAVADA GE",                  "PORCA SEXTAVADA GF"),
     ("ROW",  "PORCA SEXTAVADA GF",                       "PORCA SEXTAVADA INOX"),
-    ("ROW",  "PORCA LOSANGULAR C/ ROSCA GE",        "PORCA LOSANGULAR C/ MOLA GE"),
-    ("FULL", "PORCA LOSANGULAR C/ PINO GE"),
     ("SEC",  "ARRUELAS"),
     ("ROW",  "ARRUELA LISA GE",                     "ARRUELA LISA GF"),
     ("ROW",  "ARRUELA LISA INOX",                        None),
     ("FULL", "ARRUELA DE PRESSAO GE"),
     ("SEC",  "PROLONGADORES"),
     ("FULL", "PROLONGADOR GE"),
-    ("SEC",  "OUTROS"),
-    ("ROW",  "CHUMBADOR CB GE",                           "JAQUETA E CONE GE"),
-    ("ROW",  "PARAFUSO LENTILHA FENDA GE",               "PARAFUSO LENTILHA TRAVA GE"),
-    ("FULL", "PARAFUSO SEXTAVADO GE"),
-    ("FULL", "PARAFUSO AUTO BROCANTE GE"),
-    ("SEC",  "GRAMPOS"),
-    ("ROW",  "GRAMPO C GE",                              "GRAMPO C COMPLETO GE"),
-    ("FULL", "BALANCIM P/ GRAMPO C GE"),
-    ("SEC",  "SUPORTES ESPECIAIS"),
-    ("ROW",  "SUPORTE MEDAJOIST",                        "SUPORTE MEDAJOIST CURTO"),
 ]
+
 
 INOX_ABRAC = {"ABRACADEIRA U INOX", "KIT ABRACADEIRA COMPLETO U INOX"}
 
