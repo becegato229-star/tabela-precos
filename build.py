@@ -60,6 +60,26 @@ def fmt_ipi(v):
     except:
         return "—"
 
+KNOWN_PREFIXES = [
+    "KIT ABRACADEIRA D C/ PARAFUSO GE",
+    "ABRACADEIRA D C/ CUNHA GE",
+    "KIT ABRACADEIRA U PERFIL C/ PARAFUSO GE",
+    "PORCA LOSANGULAR C/ ROSCA GE",
+    "PORCA LOSANGULAR C/ MOLA GE",
+    "PORCA LOSANGULAR C/ PINO GE",
+]
+
+def get_group(item):
+    for prefix in KNOWN_PREFIXES:
+        if item.startswith(prefix):
+            return prefix
+    m = re.match(r"^((?:[A-Z]+\s+)+?)(?:\d+\s+)?(?:\d+/\d+|M\d+|\d+\s+X\b|\d+\s+\d+/\d+|\b\d+\b(?:\s+(?:NC|WW|X\b))?)", item)
+    if m: return m.group(1).strip()
+    return item.split(" X ")[0].strip()
+
+def get_medida(item, grupo):
+    remainder = item[len(grupo):].strip() if item.startswith(grupo) else item
+    return remainder.strip() or item
 
 # ── Load ──────────────────────────────────────────────────────────────────────
 df = pd.read_excel(FILE_TODOS, sheet_name="Sheet2")
@@ -85,6 +105,10 @@ LAYOUT = [
     ("FULL", "KIT ABRACADEIRA COMPLETO U GE"),
     ("ROW",  "ABRACADEIRA U GF",                         "ABRACADEIRA U INOX"),
     ("ROW",  "KIT ABRACADEIRA COMPLETO U GF",            "KIT ABRACADEIRA COMPLETO U INOX"),
+    ("ROW",  "KIT ABRACADEIRA D C/ PARAFUSO GE",         "ABRACADEIRA D C/ CUNHA GE"),
+    ("FULL", "ABRACADEIRA ECONOMICA GE"),
+    ("ROW",  "KIT ABRACADEIRA UNIAO HORIZONTAL GE",      "KIT ABRACADEIRA UNIAO VERTICAL GE"),
+    ("FULL", "ABRACADEIRA OMEGA GE"),
     ("SEC",  "OLHAIS"),
     ("ROW",  "OLHAL NAT",                                "OLHAL GE"),
     ("ROW",  "OLHAL GF",                                 "PARAFUSO OLHAL GE"),
